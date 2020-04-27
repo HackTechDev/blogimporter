@@ -285,6 +285,23 @@ function applyCategory($post_id, $category_name) {
 }
 
 
+function extractTag(DomDocument $dom, $uri) {
+    $xpath = new DomXpath($dom);
+    
+     $tags = array();
+    foreach ($xpath->query("//div[@class='blogbody']//div[@class='itemfooter']//a[@rel='tag']") as $tag) {
+      $tags[] = $tag->textContent;
+    }
+
+    return $tags;
+}
+
+
+function applyTag($post_id, $tags) {
+    wp_set_post_tags($post_id, implode(',', $tags));
+}
+
+
 function blogimporter_add_menu() {
 	add_submenu_page("options-general.php", "Blog Importer Plugin", "Blog Importer Plugin", "manage_options", "blog-importer", "blog_importer_page");
 }
@@ -301,16 +318,22 @@ function blog_importer_page()
             echo $article . "<br>";
             $uri = $article;
             $remote = getContentFromUri(trim($uri));
-
+        
+            
+            $tag = extractTag($remote['dom'], trim($uri)); 
+            
             $category = extractCategory($remote['dom'], trim($uri));           
 
             $post_id = savePost($remote['dom'], trim($uri));
 
             applyCategory($post_id, $category);
 
+            applyTag($post_id, $tag);     
+
             saveMedias(get_post($post_id));
 
             updateURLMedia(get_post($post_id));
+            
     }
 
     echo "</div>";
