@@ -248,7 +248,7 @@ function updateURLMedia($post) {
 
     foreach ($xpath->query("//img[contains(@src, 'canalblog.com/storagev1') or contains(@src, 'storage.canalblog.com') or contains(@src, 'canalblog.com/images')]") as $link) {
       array_push($remote_uris, cleanupMediaUri($link->getAttribute('src')));
-      $path_src = $link->getAttribute('src');
+        $path_src = $link->getAttribute('src');
       $new_path = $path_media . basename($path_src);
       $post_content = str_replace ($path_src, $new_path, $post_content);
     }
@@ -257,6 +257,31 @@ function updateURLMedia($post) {
 
     wp_update_post($post);
 
+}
+
+
+function extractCategory(DomDocument $dom, $uri) {
+     $xpath = new DomXpath($dom);
+
+    $attempt = $xpath->query('//div[@class="breadcrumb"]');
+
+    $breadcrumb = preg_split("/>/", $attempt->item(0)->textContent);
+
+    return trim($breadcrumb[1]);
+}
+
+
+function applyCategory($post_id, $category_name) {
+            $categories = array();
+
+            $category = array('cat_name' => $category_name);
+            
+            if(!is_category($category)) {
+                $category_id = wp_insert_category($category);
+            } 
+            $category_id = get_cat_ID($category_name);
+
+            wp_set_post_categories($post_id, $category_id);
 }
 
 
@@ -273,10 +298,15 @@ function blog_importer_page()
     echo "<div class=\"wrap\"> ";
 
     foreach ($listarticle as $article) {
-        echo $article . "<br>";
-        $uri = $article;
+            echo $article . "<br>";
+            $uri = $article;
             $remote = getContentFromUri(trim($uri));
+
+            $category = extractCategory($remote['dom'], trim($uri));           
+
             $post_id = savePost($remote['dom'], trim($uri));
+
+            applyCategory($post_id, $category);
 
             saveMedias(get_post($post_id));
 
