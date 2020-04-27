@@ -180,6 +180,52 @@ function savePost(DomDocument $dom, $uri) {
     $my_post['post_category'] = array(0);
 
     $post_id = wp_insert_post( $my_post );
+    return $post_id;
+}
+
+
+function cleanupMediaUri ($uri) {
+    return array('uri' => $uri, 'original_uri' => $uri, 'size' => 'full');
+}
+
+
+function extractMediaUris($html, $path_media) {
+    $remote_uris = array();
+    $dom = getDomDocumentFromHtml($html);
+    $xpath = new DomXpath($dom);
+
+    foreach ($xpath->query("//a[contains(@href, 'canalblog.com/storagev1') or contains(@href, 'storage.canalblog.com') or contains(@href, 'canalblog.com/docs')]") as $link) {
+      array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
+      $path_href = $link->getAttribute('href');
+    
+    echo $path_href . " " .  $path_media . "/" . basename($path_href);
+      copy( $path_href, $path_media . "/" . basename($path_href));  
+    }
+
+    foreach ($xpath->query("//img[contains(@src, 'canalblog.com/storagev1') or contains(@src, 'storage.canalblog.com') or contains(@src, 'canalblog.com/images')]") as $link) {
+      array_push($remote_uris, cleanupMediaUri($link->getAttribute('src')));
+      $path_src = $link->getAttribute('src');
+      copy( $path_src, $path_media . "/" . basename($path_src));
+    }
+
+}
+
+
+function saveMedias($post) {
+    $post_content = $post->post_content;
+    $post_date = $post->post_date;
+
+    $date_media = str_replace("-", "/", substr( $post_date, 0, 8));
+
+    echo $date_media;
+
+    $path_media = "/home/util01/public_html/onmjfootsteps/wp-content/uploads/" . $date_media;
+
+    if (!is_dir($path_media)) {
+        mkdir($path_media, 0777, true); 
+    }
+
+    $remote_uris = extractMediaUris($post_content, $path_media);
 
 }
 
@@ -206,7 +252,7 @@ function blog_importer_page()
     $data = array();
     $remote = getContentFromUri($uri);
 
-    savePost($remote['dom'], $uri);
+    $post_id = savePost($remote['dom'], $uri);
 
-
+    saveMedias(get_post($post_id));
 }
