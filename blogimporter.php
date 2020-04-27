@@ -36,8 +36,7 @@ function getRemoteHtml($uri)
     return $result['body'];
   }
 
-function getDomDocumentFromHtml(&$html, $stripJavaScript = true)
-  {
+function getDomDocumentFromHtml(&$html, $stripJavaScript = true) {
     //removing all scripts (we don't want them)
     if (!!$stripJavaScript)
     {
@@ -68,17 +67,12 @@ function getDomDocumentFromHtml(&$html, $stripJavaScript = true)
   }
 
 
-
-
-function getRemoteDomDocument($uri, &$html = '')
-  {
+function getRemoteDomDocument($uri, &$html = '') {
     $html = getRemoteHtml($uri);
     $dom = getDomDocumentFromHtml($html);
 
     return $dom;
   }
-
-
 
 
 function getRemoteXpath($uri, $xpath_query, &$html = '') {
@@ -116,6 +110,7 @@ function extractTitle($xpath) {
 
     return trim($title);
   }
+
 
 function extractPostDate($xpath) {
     
@@ -197,8 +192,6 @@ function extractMediaUris($html, $path_media) {
     foreach ($xpath->query("//a[contains(@href, 'canalblog.com/storagev1') or contains(@href, 'storage.canalblog.com') or contains(@href, 'canalblog.com/docs')]") as $link) {
       array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
       $path_href = $link->getAttribute('href');
-    
-      //echo $path_href . " " .  $path_media . "/" . basename($path_href);
       copy( $path_href, $path_media . "/" . basename($path_href));  
     }
 
@@ -308,8 +301,7 @@ function blogimporter_add_menu() {
 add_action("admin_menu", "blogimporter_add_menu");
 
 
-function blog_importer_page()
-{
+function blog_importer_page() {
     $listarticle = file('http://dev.onmjfootsteps.com/wp-content/plugins/blogimporter/canalblog_liste_article.10.txt');
     
     echo "<div class=\"wrap\"> ";
