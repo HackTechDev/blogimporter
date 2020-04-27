@@ -268,23 +268,20 @@ add_action("admin_menu", "blogimporter_add_menu");
 
 function blog_importer_page()
 {
-
-    //$uri = "http://www.onmjfootsteps.com/archives/2020/04/23/38227331.html";
-    $uri = "http://www.onmjfootsteps.com/archives/2014/04/09/29630116.html";
-
+    $listarticle = file('http://dev.onmjfootsteps.com/wp-content/plugins/blogimporter/canalblog_liste_article.10.txt');
+    
     echo "<div class=\"wrap\"> ";
-    echo "uri: " . $uri; 
+
+    foreach ($listarticle as $article) {
+        echo $article . "<br>";
+        $uri = $article;
+            $remote = getContentFromUri(trim($uri));
+            $post_id = savePost($remote['dom'], trim($uri));
+
+            saveMedias(get_post($post_id));
+
+            updateURLMedia(get_post($post_id));
+    }
+
     echo "</div>";
-
-
-
-    $data = array();
-    $remote = getContentFromUri($uri);
-
-    $post_id = savePost($remote['dom'], $uri);
-
-    saveMedias(get_post($post_id));
-
-    updateURLMedia(get_post($post_id));
-
 }
