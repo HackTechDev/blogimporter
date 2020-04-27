@@ -198,7 +198,7 @@ function extractMediaUris($html, $path_media) {
       array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
       $path_href = $link->getAttribute('href');
     
-    echo $path_href . " " .  $path_media . "/" . basename($path_href);
+      //echo $path_href . " " .  $path_media . "/" . basename($path_href);
       copy( $path_href, $path_media . "/" . basename($path_href));  
     }
 
@@ -217,8 +217,6 @@ function saveMedias($post) {
 
     $date_media = str_replace("-", "/", substr( $post_date, 0, 8));
 
-    echo $date_media;
-
     $path_media = "/home/util01/public_html/onmjfootsteps/wp-content/uploads/" . $date_media;
 
     if (!is_dir($path_media)) {
@@ -229,6 +227,37 @@ function saveMedias($post) {
 
 }
 
+
+function updateURLMedia($post) {
+    $post_content = $post->post_content;
+    $post_date = $post->post_date;
+ 
+    $date_media = str_replace("-", "/", substr( $post_date, 0, 8));
+    $path_media = "/wp-content/uploads/" . $date_media;
+
+     $remote_uris = array();
+    $dom = getDomDocumentFromHtml($post_content);
+    $xpath = new DomXpath($dom);
+
+    foreach ($xpath->query("//a[contains(@href, 'canalblog.com/storagev1') or contains(@href, 'storage.canalblog.com') or contains(@href, 'canalblog.com/docs')]") as $link) {
+      array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
+      $path_href = $link->getAttribute('href');
+      $new_path = $path_media . basename($path_href);
+      $post_content = str_replace ($path_href, $new_path, $post_content); 
+    }
+
+    foreach ($xpath->query("//img[contains(@src, 'canalblog.com/storagev1') or contains(@src, 'storage.canalblog.com') or contains(@src, 'canalblog.com/images')]") as $link) {
+      array_push($remote_uris, cleanupMediaUri($link->getAttribute('src')));
+      $path_src = $link->getAttribute('src');
+      $new_path = $path_media . basename($path_src);
+      $post_content = str_replace ($path_src, $new_path, $post_content);
+    }
+
+    $post->post_content = $post_content;
+
+    wp_update_post($post);
+
+}
 
 
 function blogimporter_add_menu() {
@@ -255,4 +284,7 @@ function blog_importer_page()
     $post_id = savePost($remote['dom'], $uri);
 
     saveMedias(get_post($post_id));
+
+    updateURLMedia(get_post($post_id));
+
 }
