@@ -1,13 +1,13 @@
 <?php
 /**
- * Crunchify Hello World Plugin is the simplest WordPress plugin for beginner.
- * Take this as a base plugin and modify as per your need.
+ * Blog importer WordPress plugin.
+ * Import data from a blog to Wordpress
  *
  * @package   Blog Importer Plugin
  * @author    Le Sanglier des Ardennes
  * @license   GPL-2.0+
- * @link      https://crunchify.com/tag/wordpress-beginner/
- * @copyright 2017 Crunchify, LLC. All rights reserved.
+ * @link      https://github.com/nekrofage
+ * @copyright 2020 Le Sanglier des Arde,,es
  *
  * @wordpress-plugin
  *            Plugin Name: Blog Importer Plugin
