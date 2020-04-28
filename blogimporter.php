@@ -4,10 +4,10 @@
  * Import data from a blog to Wordpress
  *
  * @package   Blog Importer Plugin
- * @author    Le Sanglier des Ardennes
+ * @author    Le Sanglier des Ardennes <lesanglierdesardennes@gmail.com>
  * @license   GPL-2.0+
  * @link      https://github.com/nekrofage
- * @copyright 2020 Le Sanglier des Arde,,es
+ * @copyright 2020 Le Sanglier des Ardennes
  *
  * @wordpress-plugin
  *            Plugin Name: Blog Importer Plugin
@@ -17,11 +17,20 @@
  *            Author: Le Sanglier des Ardennes
  *            Author URI: https://github.com/nekrofage
  *            Text Domain: blog-importer
- *            Contributors: Nekrofage
+ *            Contributors: Le Sanglier des Ardennes
  *            License: GPL-2.0+
  *            License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
+/**
+ * Get remote HTML
+ *
+ * @author  Le Sanglier des Ardennes
+ * @since   1.0
+ * @version 1.0
+ * @param 
+ * @return 
+ */
 
 function getRemoteHtml($uri)
 {
@@ -52,9 +61,9 @@ function getDomDocumentFromHtml(&$html, $stripJavaScript = true)
     if (preg_match('/<head/iU', $html)) {
         $html = preg_replace('/(<head[^>]*>)/siU', '\\1<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />', $html);
     } else {
-    /*
-     * Fixing UTF8 on HTML fragment
-     */
+        /*
+        * Fixing UTF8 on HTML fragment
+        */
         $html = sprintf('<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body>%s</body></html>', $html);
     }
 
@@ -138,7 +147,6 @@ function extractPostDate($xpath)
 
 function extractPostContent($uri)
 {
-
     $html =  file_get_contents($uri, false, $context);
 
 
@@ -190,29 +198,29 @@ function cleanupMediaUri($uri)
 
 
 
-function addAttachmentToPost($post_id, $filename) {
-    $filetype = wp_check_filetype( basename( $filename ), null );
+function addAttachmentToPost($post_id, $filename) 
+{
+    $filetype = wp_check_filetype(basename($filename), null);
     $wp_upload_dir = wp_upload_dir();
     $attachment = array(
-    'guid'           => $wp_upload_dir['url'] . '/' . basename( $filename ), 
-    'post_mime_type' => $filetype['type'],
-    'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $filename ) ),
-    'post_content'   => '',
-    'post_status'    => 'inherit'
-);
+        'guid'           => $wp_upload_dir['url'] . '/' . basename($filename), 
+        'post_mime_type' => $filetype['type'],
+        'post_title'     => preg_replace('/\.[^.]+$/', '', basename($filename)),
+        'post_content'   => '',
+        'post_status'    => 'inherit'
+    );
 
+    $attach_id = wp_insert_attachment($attachment, $filename, $post_id);
 
-    $attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+    include_once ABSPATH . 'wp-admin/includes/image.php';
 
-    require_once( ABSPATH . 'wp-admin/includes/image.php' );
+    $attach_data = wp_generate_attachment_metadata($attach_id, $filename);
 
-    $attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+    wp_update_attachment_metadata($attach_id, $attach_data);
 
-    wp_update_attachment_metadata( $attach_id, $attach_data );
-
-    set_post_thumbnail( $post_id, $attach_id );
-
+    set_post_thumbnail($post_id, $attach_id);
 }
+
 
 function extractMediaUris($post_id, $html, $path_media)
 {
@@ -233,7 +241,6 @@ function extractMediaUris($post_id, $html, $path_media)
         $path_src = $link->getAttribute('src');
         copy($path_src, $path_media . "/" . basename($path_src));
     }
-
 }
 
 
@@ -251,7 +258,6 @@ function saveMedias($post)
     }
 
     $remote_uris = extractMediaUris($post->ID, $post_content, $path_media);
-
 }
 
 
