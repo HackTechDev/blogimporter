@@ -189,7 +189,32 @@ function cleanupMediaUri($uri)
 }
 
 
-function extractMediaUris($html, $path_media)
+
+function addAttachmentToPost($post_id, $filename) {
+    $filetype = wp_check_filetype( basename( $filename ), null );
+    $wp_upload_dir = wp_upload_dir();
+    $attachment = array(
+    'guid'           => $wp_upload_dir['url'] . '/' . basename( $filename ), 
+    'post_mime_type' => $filetype['type'],
+    'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $filename ) ),
+    'post_content'   => '',
+    'post_status'    => 'inherit'
+);
+
+
+    $attach_id = wp_insert_attachment( $attachment, $filename, $post_id );
+
+    require_once( ABSPATH . 'wp-admin/includes/image.php' );
+
+    $attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+
+    wp_update_attachment_metadata( $attach_id, $attach_data );
+
+    set_post_thumbnail( $post_id, $attach_id );
+
+}
+
+function extractMediaUris($post_id, $html, $path_media)
 {
     $remote_uris = array();
     $dom = getDomDocumentFromHtml($html);
@@ -199,6 +224,8 @@ function extractMediaUris($html, $path_media)
         array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
         $path_href = $link->getAttribute('href');
         copy($path_href, $path_media . "/" . basename($path_href));  
+
+        addAttachmentToPost($post_id, $path_media . "/" . basename($path_href));
     }
 
     foreach ($xpath->query("//img[contains(@src, 'canalblog.com/storagev1') or contains(@src, 'storage.canalblog.com') or contains(@src, 'canalblog.com/images')]") as $link) {
@@ -223,7 +250,7 @@ function saveMedias($post)
         mkdir($path_media, 0777, true); 
     }
 
-    $remote_uris = extractMediaUris($post_content, $path_media);
+    $remote_uris = extractMediaUris($post->ID, $post_content, $path_media);
 
 }
 
@@ -257,7 +284,6 @@ function updateURLMedia($post)
     $post->post_content = $post_content;
 
     wp_update_post($post);
-
 }
 
 
