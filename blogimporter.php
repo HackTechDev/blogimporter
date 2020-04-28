@@ -28,8 +28,8 @@
  * @author  Le Sanglier des Ardennes
  * @since   1.0
  * @version 1.0
- * @param 
- * @return 
+ * @param $uri
+ * @return $result
  */
 
 function getRemoteHtml($uri)
@@ -46,6 +46,17 @@ function getRemoteHtml($uri)
 
     return $result['body'];
 }
+
+
+/**
+ * Get Dom Document from HTML
+ *
+ * @author  Le Sanglier des Ardennes
+ * @since   1.0
+ * @version 1.0
+ * @param 
+ * @return 
+ */
 
 function getDomDocumentFromHtml(&$html, $stripJavaScript = true)
 {
