@@ -363,8 +363,6 @@ function saveComments(DomDocument $dom, $uri, $post_id)
 
 
   foreach($comments as $comment){
-    echo "************<br/>";
-
     $data = array(
       'comment_approved' => 1,
       'comment_karma' => 1,
@@ -455,6 +453,8 @@ function blog_importer_page()
         saveMedias(get_post($post_id));
 
         updateURLMedia(get_post($post_id));
+
+        file_put_contents ("/home/util01/public_html/onmjfootsteps/wp-content/plugins/blogimporter/canalblog_debug.txt", $article,  FILE_APPEND | LOCK_EX); 
 
     }
 
