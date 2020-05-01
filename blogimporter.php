@@ -402,21 +402,14 @@ function saveComments(DomDocument $dom, $uri, $post_id)
 
     $data['comment_post_ID'] = $post_id;
 
-
-
-
     if($level == 1) {
         $previous_comment_id_sublevel1 = wp_insert_comment($data);
     }
-
 
     if($level == 2) {
         $data['comment_parent'] = $previous_comment_id_sublevel1;
         $previous_comment_id_sublevel2= wp_insert_comment($data);
     }
-
-
-
 
   }
 
@@ -455,13 +448,13 @@ function blog_importer_page()
 
         saveComments($remote['dom'], $remote['html'], $post_id);
 
-        //applyCategory($post_id, $category);
+        applyCategory($post_id, $category);
 
-        //applyTag($post_id, $tag);
+        applyTag($post_id, $tag);
 
-        //saveMedias(get_post($post_id));
+        saveMedias(get_post($post_id));
 
-        //updateURLMedia(get_post($post_id));
+        updateURLMedia(get_post($post_id));
 
     }
 
