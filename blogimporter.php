@@ -54,8 +54,8 @@ function getRemoteHtml($uri)
  * @author  Le Sanglier des Ardennes
  * @since   1.0
  * @version 1.0
- * @param 
- * @return 
+ * @param
+ * @return
  */
 
 function getDomDocumentFromHtml(&$html, $stripJavaScript = true)
@@ -136,18 +136,18 @@ function extractTitle($xpath)
 
 function extractPostDate($xpath)
 {
-    
+
     $dateResult = $xpath->query('//div[@class="dateheader"]');
     $timeResult = $xpath->query('//span[@class="articledate"]');
 
     $datePost = $dateResult->item(0)->textContent;
 
-    $timePost = $timeResult->item(0)->textContent;   
+    $timePost = $timeResult->item(0)->textContent;
 
     list($day, $month, $year) =  preg_split("/ /", $datePost);
 
     list($hour, $minutes) = preg_split("/:/", $timePost);
-    
+
 
     $months = array('janvier' => 1, 'février' => 2, 'mars' => 3, 'avril' => 4, 'mai' => 5, 'juin' => 6, 'juillet' => 7, 'août' => 8, 'septembre' => 9, 'octobre' => 10, 'novembre' => 11, 'décembre' => 12);
 
@@ -183,7 +183,7 @@ function savePost(DomDocument $dom, $uri)
 
      preg_match('#/(\d+)\.html$#U', $uri, $matches);
      $blog_id = $matches[1];
-   
+
      $data['post_title'] = extractTitle($xpath);
      $data['post_date'] = extractPostDate($xpath);
 
@@ -209,12 +209,12 @@ function cleanupMediaUri($uri)
 
 
 
-function addAttachmentToPost($post_id, $filename) 
+function addAttachmentToPost($post_id, $filename)
 {
     $filetype = wp_check_filetype(basename($filename), null);
     $wp_upload_dir = wp_upload_dir();
     $attachment = array(
-        'guid'           => $wp_upload_dir['url'] . '/' . basename($filename), 
+        'guid'           => $wp_upload_dir['url'] . '/' . basename($filename),
         'post_mime_type' => $filetype['type'],
         'post_title'     => preg_replace('/\.[^.]+$/', '', basename($filename)),
         'post_content'   => '',
@@ -242,7 +242,7 @@ function extractMediaUris($post_id, $html, $path_media)
     foreach ($xpath->query("//a[contains(@href, 'canalblog.com/storagev1') or contains(@href, 'storage.canalblog.com') or contains(@href, 'canalblog.com/docs')]") as $link) {
         array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
         $path_href = $link->getAttribute('href');
-        copy($path_href, $path_media . "/" . basename($path_href));  
+        copy($path_href, $path_media . "/" . basename($path_href));
 
         addAttachmentToPost($post_id, $path_media . "/" . basename($path_href));
     }
@@ -265,7 +265,7 @@ function saveMedias($post)
     $path_media = "/home/util01/public_html/onmjfootsteps/wp-content/uploads/" . $date_media;
 
     if (!is_dir($path_media)) {
-        mkdir($path_media, 0777, true); 
+        mkdir($path_media, 0777, true);
     }
 
     $remote_uris = extractMediaUris($post->ID, $post_content, $path_media);
@@ -276,7 +276,7 @@ function updateURLMedia($post)
 {
     $post_content = $post->post_content;
     $post_date = $post->post_date;
- 
+
     $date_media = str_replace("-", "/", substr($post_date, 0, 8));
     $path_media = "/wp-content/uploads/" . $date_media;
 
@@ -288,7 +288,7 @@ function updateURLMedia($post)
         array_push($remote_uris, cleanupMediaUri($link->getAttribute('href')));
         $path_href = $link->getAttribute('href');
         $new_path = $path_media . basename($path_href);
-        $post_content = str_replace($path_href, $new_path, $post_content); 
+        $post_content = str_replace($path_href, $new_path, $post_content);
     }
 
     foreach ($xpath->query("//img[contains(@src, 'canalblog.com/storagev1') or contains(@src, 'storage.canalblog.com') or contains(@src, 'canalblog.com/images')]") as $link) {
@@ -321,10 +321,10 @@ function applyCategory($post_id, $category_name)
     $categories = array();
 
     $category = array('cat_name' => $category_name);
-    
+
     if (!is_category($category)) {
         $category_id = wp_insert_category($category);
-    } 
+    }
     $category_id = get_cat_ID($category_name);
 
     wp_set_post_categories($post_id, $category_id);
@@ -334,7 +334,7 @@ function applyCategory($post_id, $category_name)
 function extractTag(DomDocument $dom, $uri)
 {
     $xpath = new DomXpath($dom);
-    
+
     $tags = array();
     foreach ($xpath->query("//div[@class='blogbody']//div[@class='itemfooter']//a[@rel='tag']") as $tag) {
         $tags[] = $tag->textContent;
@@ -350,6 +350,82 @@ function applyTag($post_id, $tags)
 }
 
 
+
+
+function saveComments(DomDocument $dom, $uri, $post_id)
+{
+
+  $previous_comment_id_sublevel1 = 0;
+  $previous_comment_id_sublevel2 = 0;
+
+  $xpath = new DomXpath($dom);
+  $comments = $xpath->query('//li[contains(@class, "comment")]');
+
+
+  foreach($comments as $comment){
+    echo "************<br/>";
+
+    $data = array(
+      'comment_approved' => 1,
+      'comment_karma' => 1,
+      'comment_post_ID' => $post_id,
+      'comment_agent' => 'Blog Importer',
+      'comment_author_IP' => '127.0.0.1',
+      'comment_type' => 'comment',
+      'comment_author_url' => ''
+    );
+
+
+    $html = $dom->saveHTML($comment);
+    $html = str_replace(array("\n", "\r"), "<br/>", $html);
+
+    preg_match('/div>(.+?)<div/', $html, $output_array);
+    $content = $output_array[1];
+    //echo $content;
+    $data['comment_content'] = $content;
+
+    preg_match('/level-([0-9])">/', $html, $output_array);
+    $level = $output_array[1];
+    //echo $level;
+
+    preg_match('/Post(.*) par (.+?),/', $html, $output_array);
+    $author = $output_array[2];
+    //echo $author;
+    $data['comment_author'] =  strip_tags($author);
+
+
+    preg_match('/timeago" title="(.+?)"/', $html, $output_array);
+    $datetime =$output_array[1];
+    //echo $datetime;
+    $data['comment_date'] =  str_replace('T', ' ', $datetime);
+    $data['comment_date_gmt'] = $data['comment_date'];
+
+    $data['comment_post_ID'] = $post_id;
+
+
+
+
+    if($level == 1) {
+        $previous_comment_id_sublevel1 = wp_insert_comment($data);
+    }
+
+
+    if($level == 2) {
+        $data['comment_parent'] = $previous_comment_id_sublevel1;
+        $previous_comment_id_sublevel2= wp_insert_comment($data);
+    }
+
+
+
+
+  }
+
+}
+
+
+
+
+
 function blogimporter_add_menu()
 {
     add_submenu_page("options-general.php", "Blog Importer Plugin", "Blog Importer Plugin", "manage_options", "blog-importer", "blog_importer_page");
@@ -362,29 +438,31 @@ add_action("admin_menu", "blogimporter_add_menu");
 function blog_importer_page()
 {
     $listarticle = file('http://dev.onmjfootsteps.com/wp-content/plugins/blogimporter/canalblog_liste_article.10.txt');
-    
+
     echo "<div class=\"wrap\"> ";
 
     foreach ($listarticle as $article) {
         echo $article . "<br>";
         $uri = $article;
         $remote = getContentFromUri(trim($uri));
-    
-        
-        $tag = extractTag($remote['dom'], trim($uri)); 
-        
-        $category = extractCategory($remote['dom'], trim($uri));           
+
+
+        $tag = extractTag($remote['dom'], trim($uri));
+
+        $category = extractCategory($remote['dom'], trim($uri));
 
         $post_id = savePost($remote['dom'], trim($uri));
 
-        applyCategory($post_id, $category);
+        saveComments($remote['dom'], $remote['html'], $post_id);
 
-        applyTag($post_id, $tag);     
+        //applyCategory($post_id, $category);
 
-        saveMedias(get_post($post_id));
+        //applyTag($post_id, $tag);
 
-        updateURLMedia(get_post($post_id));
-        
+        //saveMedias(get_post($post_id));
+
+        //updateURLMedia(get_post($post_id));
+
     }
 
     echo "</div>";
