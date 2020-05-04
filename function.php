@@ -240,7 +240,7 @@ function saveMedias($post)
 
     $date_media = str_replace("-", "/", substr($post_date, 0, 8));
 
-    $path_media = "/home/util01/public_html/onmjfootsteps/wp-content/uploads/" . $date_media;
+    $path_media = "/home/mj/public_html/wp-content/uploads/" . $date_media;
 
     if (!is_dir($path_media)) {
         mkdir($path_media, 0777, true);
@@ -256,7 +256,7 @@ function updateURLMedia($post)
     $post_date = $post->post_date;
 
     $date_media = str_replace("-", "/", substr($post_date, 0, 8));
-    $path_media = "/wp-content/uploads/" . $date_media;
+    $path_media = "/mj/wp-content/uploads/" . $date_media;
 
     $remote_uris = array();
     $dom = getDomDocumentFromHtml($post_content);
@@ -393,7 +393,7 @@ function saveComments(DomDocument $dom, $uri, $post_id)
 
 function canalblog_importer_page()
 {
-    $listarticle = file('http://dev.onmjfootsteps.com/wp-content/plugins/blogimporter/canalblog_liste_article.10.txt');
+    $listarticle = file('http://217.70.191.236/mj/wp-content/plugins/blogimporter/canalblog_liste_article.10.txt');
 
     echo "Canalblog Importer has been done:<br>";
 
@@ -419,7 +419,7 @@ function canalblog_importer_page()
 
         updateURLMedia(get_post($post_id));
 
-        file_put_contents ("/home/util01/public_html/onmjfootsteps/wp-content/plugins/blogimporter/canalblog_debug.txt", $article,  FILE_APPEND | LOCK_EX);
+        file_put_contents ("/home/mj/public_html/wp-content/plugins/blogimporter/canalblog_debug.txt", $article,  FILE_APPEND | LOCK_EX);
 
     }
 
