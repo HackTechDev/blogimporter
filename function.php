@@ -240,7 +240,7 @@ function saveMedias($post)
 
     $date_media = str_replace("-", "/", substr($post_date, 0, 8));
 
-    $path_media = $server_path . "/wp-content/uploads/" . $date_media;
+    $path_media = ABSPATH . "wp-content/uploads/" . $date_media;
 
     if (!is_dir($path_media)) {
         mkdir($path_media, 0777, true);
@@ -395,10 +395,10 @@ function canalblog_importer_page($listArticleFile)
 {
     $listArticle = file( $listArticleFile);
 
-    echo "Canalblog Importer has been done:<br>";
+    echo "Canalblog Importer has been done:<br/><br/>";
     
-    echo $listArticle . "<br/>";
-
+    echo  $listArticleFile . "<br/><br/>";
+    
     foreach ($listArticle as $article) {
         echo $article . "<br>";
         
@@ -421,7 +421,7 @@ function canalblog_importer_page($listArticleFile)
 
         updateURLMedia(get_post($post_id));
         
-        file_put_contents ( $listArticleFile . ".debug", $article,  FILE_APPEND | LOCK_EX);
+        file_put_contents ( ABSPATH . "wp-content/plugins/blogimporter/article_debug.txt", $article,  FILE_APPEND | LOCK_EX);
         
     }
 
